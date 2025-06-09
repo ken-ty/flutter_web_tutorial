@@ -3,9 +3,10 @@ import 'package:googleapis/youtube/v3.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/link.dart';
 
+import 'adaptive_image.dart'; // Add this line,
+import 'adaptive_text.dart'; // and this line
 import 'app_state.dart';
 
-// プレイリスト詳細画面: アダプティブレイアウト対応でAppBarなしに変更
 class PlaylistDetails extends StatelessWidget {
   const PlaylistDetails({
     required this.playlistId,
@@ -30,7 +31,6 @@ class PlaylistDetails extends StatelessWidget {
   }
 }
 
-// プレイリスト詳細リスト表示Widget: StatelessWidget から StatefulWidget に変更
 class _PlaylistDetailsListView extends StatefulWidget {
   const _PlaylistDetailsListView({required this.playlistItems});
   final List<PlaylistItem> playlistItems;
@@ -41,19 +41,16 @@ class _PlaylistDetailsListView extends StatefulWidget {
 }
 
 class _PlaylistDetailsListViewState extends State<_PlaylistDetailsListView> {
-  // ScrollController: スクロール位置を制御（長いプレイリストでの体験向上）
   late ScrollController _scrollController;
 
   @override
   void initState() {
     super.initState();
-    // ScrollControllerを初期化
     _scrollController = ScrollController();
   }
 
   @override
   void dispose() {
-    // リソースの適切な解放
     _scrollController.dispose();
     super.dispose();
   }
@@ -61,7 +58,6 @@ class _PlaylistDetailsListViewState extends State<_PlaylistDetailsListView> {
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
-      // スクロールコントローラーを設定
       controller: _scrollController,
       itemCount: widget.playlistItems.length,
       itemBuilder: (context, index) {
@@ -74,7 +70,10 @@ class _PlaylistDetailsListViewState extends State<_PlaylistDetailsListView> {
               alignment: Alignment.center,
               children: [
                 if (playlistItem.snippet!.thumbnails!.high != null)
-                  Image.network(playlistItem.snippet!.thumbnails!.high!.url!),
+                  AdaptiveImage.network(
+                    // Modify this line
+                    playlistItem.snippet!.thumbnails!.high!.url!,
+                  ),
                 _buildGradient(context),
                 _buildTitleAndSubtitle(context, playlistItem),
                 _buildPlayButton(context, playlistItem),
@@ -113,7 +112,8 @@ class _PlaylistDetailsListViewState extends State<_PlaylistDetailsListView> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          AdaptiveText(
+            // This line
             playlistItem.snippet!.title!,
             style: Theme.of(context).textTheme.bodyLarge!.copyWith(
               fontSize: 18,
@@ -121,7 +121,8 @@ class _PlaylistDetailsListViewState extends State<_PlaylistDetailsListView> {
             ),
           ),
           if (playlistItem.snippet!.videoOwnerChannelTitle != null)
-            Text(
+            AdaptiveText(
+              // And, this line
               playlistItem.snippet!.videoOwnerChannelTitle!,
               style: Theme.of(
                 context,
