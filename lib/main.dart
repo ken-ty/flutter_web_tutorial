@@ -1,97 +1,159 @@
+// 1. dart:io ライブラリから Platform クラスのみをインポート
+// Platform: 実行環境（OS）の情報を取得するためのクラス
+import 'dart:io' show Platform;
+
+// 2. flutter/foundation.dart から kIsWeb 定数のみをインポート
+// kIsWeb: アプリがWebブラウザ上で動作しているかを判定するフラグ
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 
-// エントリポイント。ここからプログラムの実行が開始される。
-// Dart VM 上で実行される。
 void main() {
-  // アプリの実行。
-  // runApp は Flutter Engine に Widget ツリーのルート（MyApp）を登録し、
-  // Flutter Framework 側で WidgetsBinding を初期化して、
-  // Element ツリーと RenderObject ツリーの構築を開始する。
   runApp(const MyApp());
 }
 
-// アプリのルートWidget（StatelessWidget）
-// StatelessWidget: 状態を持たない不変のWidget
-// アプリ全体の設定（テーマ、ルートページなど）を定義
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // build メソッド：Widget ツリーの構築を行う
-  // BuildContext: Widget の位置情報や親子関係の情報を持つ
-  //
-  // そもそも build メソッドとは:
-  // Widgetの見た目と構造を決めるメソッドのこと。 必ず @override する。
-  // StatelessWidgetでは Widgetが作られた時に1度だけ呼ばれる。
-  // StatefulWidgetでは 最初に作られた時、 状態変更された時、 親 Widget が再構築された時に呼ばれる。
   @override
   Widget build(BuildContext context) {
-    // MaterialApp: Material Design のアプリケーションのルートWidget
-    // アプリ全体のナビゲーション、テーマ、ローカライゼーションなどを管理
     return MaterialApp(
       title: 'Flutter Demo',
-      theme: ThemeData(primarySwatch: Colors.deepPurple), // アプリ全体のテーマ設定
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      theme: ThemeData(primarySwatch: Colors.blue),
+      // 3. ホーム画面を ResizeablePage に変更（レスポンシブ対応ページ）
+      home: const ResizeablePage(),
     );
   }
 }
 
-// ホーム画面のWidget（StatefulWidget）
-// StatefulWidget: 状態を持つことができる動的なWidget
-// State オブジェクトと組み合わせて状態管理を行う
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-  final String title; // AppBar に表示するタイトル
+// 4. レスポンシブ対応とプラットフォーム情報表示のページ
+class ResizeablePage extends StatelessWidget {
+  const ResizeablePage({super.key});
 
-  // createState: 対応する State オブジェクトを生成
-  // StatefulWidget と State は分離されており、Widget は再構築されても
-  // State オブジェクトは保持されるため状態が維持される
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-// State クラス：実際の状態とビジネスロジックを管理
-// State<MyHomePage> により MyHomePage Widget と紐づく
-class _MyHomePageState extends State<MyHomePage> {
-  // 状態変数：カウンタの値を保持
-  // _ から始まる変数名は Dart でプライベート変数を示す
-  int _counter = 0;
-
-  // イベントハンドラ：ボタンが押された時の処理
-  // setState() を呼ぶことで Flutter Framework に状態変更を通知
-  void _incrementCounter() {
-    // setState: 状態変更を Framework に通知し、UI の再描画をトリガー
-    // この関数内で状態変数を更新すると、build メソッドが再実行される
-    setState(() {
-      _counter++; // カウンタをインクリメント
-    });
-  }
-
-  // build メソッド：UI の構造を定義（状態が変わるたびに呼ばれる）
-  // setState が呼ばれるとこのメソッドが再実行され、UI が更新される
   @override
   Widget build(BuildContext context) {
-    // Scaffold: Material Design の基本的な画面レイアウト構造
-    // AppBar、Body、FloatingActionButton などの配置を管理
+    // 5. MediaQuery: デバイスの画面情報（サイズ、解像度等）を取得
+    // ウィンドウサイズ変更時に自動的に再描画される
+    final mediaQuery = MediaQuery.of(context);
+
+    // 6. Theme から現在のプラットフォーム情報を取得
+    // Flutter が自動判定したプラットフォーム（TargetPlatform enum）
+    final themePlatform = Theme.of(context).platform;
+
     return Scaffold(
-      appBar: AppBar(title: Text(widget.title)),
       body: Center(
         child: Column(
-          // MainAxisAlignment: 主軸（縦方向）の配置方法を指定
-          mainAxisAlignment: MainAxisAlignment.center, // 中央揃え
+          mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            const Text('You have pushed the button this many times:'),
             Text(
-              '$_counter', // 文字列補間でカウンタ値を文字列に変換している
-              style: Theme.of(context).textTheme.headlineMedium,
+              'Window properties',
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+            const SizedBox(height: 8), // 縦方向のスペース作成
+            // 7. 固定幅のコンテナでテーブル表示エリアを制限
+            SizedBox(
+              width: 350,
+              // 8. Table Widget: 行と列を持つテーブル形式のレイアウト
+              // GridView より軽量で、データ表示に適している
+              child: Table(
+                textBaseline: TextBaseline.alphabetic, // テキストのベースライン揃え
+                children: <TableRow>[
+                  // 9. ウィンドウサイズの表示行
+                  // MediaQuery から取得した画面サイズを小数点1桁で表示
+                  _fillTableRow(
+                    context: context,
+                    property: 'Window Size',
+                    value:
+                        '${mediaQuery.size.width.toStringAsFixed(1)} x '
+                        '${mediaQuery.size.height.toStringAsFixed(1)}',
+                  ),
+
+                  // 10. デバイスピクセル比の表示行
+                  // 物理ピクセル数 ÷ 論理ピクセル数（高解像度ディスプレイ対応）
+                  _fillTableRow(
+                    context: context,
+                    property: 'Device Pixel Ratio',
+                    value: mediaQuery.devicePixelRatio.toStringAsFixed(2),
+                  ),
+
+                  // 11. 実際のプラットフォーム判定結果の表示行
+                  // dart:io の Platform クラスによる実環境の検出結果
+                  _fillTableRow(
+                    context: context,
+                    property: 'Platform.isXXX',
+                    value: platformDescription(),
+                  ),
+
+                  // 12. Flutter Theme によるプラットフォーム判定の表示行
+                  // Flutter Framework が判定したプラットフォーム情報
+                  _fillTableRow(
+                    context: context,
+                    property: 'Theme.of(ctx).platform',
+                    value: themePlatform.toString(),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ),
     );
+  }
+
+  // 13. テーブル行生成のヘルパーメソッド
+  // プロパティ名と値を受け取って TableRow を生成する再利用可能な関数
+  TableRow _fillTableRow({
+    required BuildContext context,
+    required String property,
+    required String value,
+  }) {
+    return TableRow(
+      children: [
+        // 14. 左側セル：プロパティ名表示
+        TableCell(
+          verticalAlignment: TableCellVerticalAlignment.baseline, // ベースライン揃え
+          child: Padding(
+            padding: const EdgeInsets.all(8.0), // セル内の余白
+            child: Text(property),
+          ),
+        ),
+        // 15. 右側セル：値表示
+        TableCell(
+          verticalAlignment: TableCellVerticalAlignment.baseline,
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Text(value),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // 16. プラットフォーム判定ロジック
+  // 実行環境に応じて適切なプラットフォーム名を返す
+  String platformDescription() {
+    // 17. Web環境の優先判定（kIsWeb は コンパイル時定数）
+    if (kIsWeb) {
+      return 'Web';
+    }
+    // 18. モバイルプラットフォームの判定
+    else if (Platform.isAndroid) {
+      return 'Android';
+    } else if (Platform.isIOS) {
+      return 'iOS';
+    }
+    // 19. デスクトッププラットフォームの判定
+    else if (Platform.isWindows) {
+      return 'Windows';
+    } else if (Platform.isMacOS) {
+      return 'macOS';
+    } else if (Platform.isLinux) {
+      return 'Linux';
+    }
+    // 20. その他・未来のプラットフォーム対応
+    else if (Platform.isFuchsia) {
+      return 'Fuchsia'; // Google の次世代OS
+    } else {
+      return 'Unknown'; // 未知のプラットフォーム
+    }
   }
 }
