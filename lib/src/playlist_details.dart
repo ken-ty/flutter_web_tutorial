@@ -5,6 +5,7 @@ import 'package:url_launcher/link.dart';
 
 import 'app_state.dart';
 
+// プレイリスト詳細画面: アダプティブレイアウト対応でAppBarなしに変更
 class PlaylistDetails extends StatelessWidget {
   const PlaylistDetails({
     required this.playlistId,
@@ -29,6 +30,7 @@ class PlaylistDetails extends StatelessWidget {
   }
 }
 
+// プレイリスト詳細リスト表示Widget: StatelessWidget から StatefulWidget に変更
 class _PlaylistDetailsListView extends StatefulWidget {
   const _PlaylistDetailsListView({required this.playlistItems});
   final List<PlaylistItem> playlistItems;
@@ -39,16 +41,19 @@ class _PlaylistDetailsListView extends StatefulWidget {
 }
 
 class _PlaylistDetailsListViewState extends State<_PlaylistDetailsListView> {
+  // ScrollController: スクロール位置を制御（長いプレイリストでの体験向上）
   late ScrollController _scrollController;
 
   @override
   void initState() {
     super.initState();
+    // ScrollControllerを初期化
     _scrollController = ScrollController();
   }
 
   @override
   void dispose() {
+    // リソースの適切な解放
     _scrollController.dispose();
     super.dispose();
   }
@@ -56,6 +61,7 @@ class _PlaylistDetailsListViewState extends State<_PlaylistDetailsListView> {
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
+      // スクロールコントローラーを設定
       controller: _scrollController,
       itemCount: widget.playlistItems.length,
       itemBuilder: (context, index) {
